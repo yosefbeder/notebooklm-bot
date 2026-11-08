@@ -1,0 +1,7 @@
+simulation: studybot
+routing: path
+mocks:
+  - name: telegram-contract
+    routeKey: telegram
+    origin: api.telegram.org
+    path: postman/mocks/telegram

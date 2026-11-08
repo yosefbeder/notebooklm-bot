@@ -1,0 +1,11 @@
+version: 1
+name: telegram-contract
+slug: telegram
+protocol: http
+port: 4010
+interceptRequests: true
+origin: api.telegram.org
+scenarios:
+  - name: default
+    path: ./default.js
+    default: true

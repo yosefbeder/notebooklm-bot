@@ -1,0 +1,44 @@
+purpose:
+  stands_in_for: Telegram Bot API HTTP methods used by the bot. NotebookLM is separately represented by a local stdio MCP server in tests/fake_mcp.py.
+  unblocks: Credential-free verification of ingestion, settings, study sessions, PDF sends, and Telegram flood-limit recovery.
+assumptions:
+  - id: telegram-http-contract
+    status: supported
+    claim: The bot serializes and parses the modeled current Bot API calls through aiogram against this local stand-in.
+    reason: The full HTTP test exercised real SDK HTTP calls and completed both study modes and PDF sends. The stand-in includes required current poll fields and parses URL-encoded forms and multipart uploads.
+    verification: On 2026-11-07, ran SIM_BASE=http://127.0.0.1:4010 pytest -q; all 13 tests passed. Inspected Postman request events for getMe, getFile, download, edits, sendPoll, stopPoll, and two sendDocument calls. This establishes client behavior against the modeled contract, not Telegram delivery on a real account.
+    source: tests/test_integration.py; postman/mocks/telegram/default.js; https://core.telegram.org/bots/api
+    updated_at: '2026-11-07'
+  - id: telegram-rate-limit-recovery
+    status: supported
+    claim: The bot waits and retries a Telegram request when the modeled 429 response includes retry_after.
+    reason: A real aiogram request received the simulated Bot API error envelope and the middleware subsequently repeated the same message request successfully.
+    verification: On 2026-11-07, the simulation recorded sendMessage returning 429 followed by 200 about one second later; the integration test asserted two attempts for the same message. Only this retry scenario was exercised.
+    source: src/studybot/main.py; tests/test_integration.py; postman/mocks/telegram/default.js
+    updated_at: '2026-11-07'
+  - id: notebook-mcp-tool-and-export-shapes
+    status: supported
+    claim: The pinned MCP server exposes the required tool names, and the adapter handles its documented and inspected quiz/flashcard export shapes.
+    reason: Started the installed notebooklm-mcp-cli 0.16.1 server, listed 55 tools without a Google operation, and inspected its download formatter. Separate real stdio tests exercised the adapter against fixtures with those shapes.
+    verification: On 2026-11-07, the actual server's tool-list check passed. Local MCP tests passed with quiz answerOptions/isCorrect/rationale and cards/front/back exports. No actual source processing, generation, or Google authentication was exercised against Google.
+    source: src/studybot/notebook.py; src/studybot/domain.py; tests/fake_mcp.py; tests/test_integration.py; https://github.com/jacob-bd/gemini-notebook-mcp-cli/tree/main/src/notebooklm_tools
+    updated_at: '2026-11-07'
+  - id: real-provider-behavior
+    status: unknown
+    claim: The configured Google account can process every screenshot format, enable public sharing, and generate English artifacts at the requested difficulty and count.
+    reason: Live credentials were not provided. Count remains a target, sharing depends on account eligibility, and actual source processing is provider-dependent.
+    verification: On 2026-11-07, provider code and documentation were inspected and local stand-ins exercised. A live small-source smoke test, representative media uploads, and a second-account notebook-link check are still required. The stand-in cannot establish these provider behaviors.
+    source: README.md; DESIGN.md; https://support.google.com/gemininotebook/answer/16215270
+    updated_at: '2026-11-07'
+  - id: owner-mock-discovery
+    status: unknown
+    claim: This repository's Telegram stand-in matches an owner-published Postman mock.
+    reason: Owner discovery was skipped because postman status failed with a local macOS keychain error. The stand-in was authored locally from the public Bot API contract and the SDK's required response fields.
+    verification: On 2026-11-07, postman status returned SecItemCopyMatching failed -50. No workspace mock was searched, pulled, or published.
+    source: postman/mocks/telegram/config.yaml; postman/mocks/telegram/default.js
+    updated_at: '2026-11-07'
+fingerprints:
+  - id: initial-implementation
+    date: '2026-11-07'
+    commit: null
+    cli: Postman 1.83.1; Python 3.14.8; aiogram 3.31.0; MCP SDK 2.3.0; FastMCP 4.1.6; notebooklm-mcp-cli 0.16.1. Workspace has no Git repository.

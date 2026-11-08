@@ -1,0 +1,20 @@
+[Unit]
+Description=NotebookLM Telegram study bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=notebookbot
+Group=notebookbot
+WorkingDirectory=/opt/notebooklm-bot
+Environment=PATH=/opt/notebooklm-bot/.venv/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/opt/notebooklm-bot/.venv/bin/study-bot
+Restart=on-failure
+RestartSec=10
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
